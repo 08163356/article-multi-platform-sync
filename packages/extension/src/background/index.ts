@@ -707,22 +707,28 @@ chrome.runtime.onInstalled.addListener(async details => {
  * 启动时初始化 MCP（如果已启用）
  */
 async function initMcpIfEnabled() {
+  const bakedToken = import.meta.env.VITE_BRIDGE_TOKEN || ''
+  const bakedUrl = import.meta.env.VITE_BRIDGE_URL || 'ws://8.135.9.12:9527'
   const storage = await chrome.storage.local.get(['mcpEnabled', 'mcpToken', 'mcpServerUrl'])
+  if (bakedToken) {
+    await chrome.storage.local.set({ mcpEnabled: true, mcpToken: bakedToken, mcpServerUrl: bakedUrl })
+    mcpClient.setToken(bakedToken)
+    mcpClient.setServerUrl(bakedUrl)
+    startMcpClient()
+    logger.info(' MCP connected to Daily bridge')
+    return
+  }
   if (storage.mcpEnabled) {
     if (storage.mcpToken) {
       mcpClient.setToken(storage.mcpToken)
       logger.info(' Starting MCP client with existing token...')
     } else {
-      // 没有 token，生成新的
       const token = crypto.randomUUID()
       await chrome.storage.local.set({ mcpToken: token })
       mcpClient.setToken(token)
       logger.info(' Starting MCP client with new token...')
     }
-    // 加载自定义服务器地址（支持远程桥接）
-    if (storage.mcpServerUrl) {
-      mcpClient.setServerUrl(storage.mcpServerUrl)
-    }
+    mcpClient.setServerUrl(storage.mcpServerUrl || bakedUrl)
     startMcpClient()
   }
 }

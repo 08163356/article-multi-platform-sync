@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { X, Loader2, FileUp } from 'lucide-react'
+import { markdownToHtml } from '@wechatsync/core'
 import { cn } from '@/lib/utils'
 import { SyncDialog } from '@/components/sync-dialog'
 import type { Platform, SyncResult, PlatformProgress } from '@/components/sync-dialog/types'
@@ -44,6 +45,54 @@ export function EditorApp() {
 
   const titleRef = useRef<HTMLHeadingElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [importNote, setImportNote] = useState('')
+
+  const importMarkdown = async (list: FileList | null) => {
+    if (!list?.length) return
+    const files = Array.from(list)
+    const md = files.find(file => /\.(md|markdown)$/i.test(file.name))
+    if (!md) {
+      setImportNote('请同时选中一个 .md 文件')
+      return
+    }
+    const images = new Map<string, string>()
+    await Promise.all(files.filter(file => file.type.startsWith('image/')).map(file => new Promise<void>(resolve => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        images.set(file.name, String(reader.result || ''))
+        resolve()
+      }
+      reader.onerror = () => resolve()
+      reader.readAsDataURL(file)
+    })))
+    const text = await md.text()
+    const titleLine = text.match(/^#\s+(.+)$/m)
+    const body = titleLine ? text.replace(titleLine[0], '').trim() : text
+    const missing: string[] = []
+    const rewritten = body.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (all, alt, src) => {
+      const clean = String(src).trim().replace(/^<|>$/g, '')
+      if (/^(https?:|data:)/i.test(clean)) return all
+      const name = decodeURIComponent(clean.split(/[/\\]/).pop() || '')
+      const data = images.get(name)
+      if (!data) {
+        missing.push(name)
+        return all
+      }
+      return `![${alt}](${data})`
+    })
+    const html = markdownToHtml(rewritten)
+    if (titleLine && titleRef.current) titleRef.current.innerText = titleLine[1].trim()
+    if (contentRef.current) contentRef.current.innerHTML = html
+    setArticle(prev => prev ? {
+      ...prev,
+      title: titleLine?.[1].trim() || prev.title,
+      content: html,
+    } : prev)
+    setImportNote(missing.length
+      ? `这些本地图片没一起选中，发布时对应平台可能看不到：${missing.join('、')}`
+      : '已导入。网络图片会在发布时上传到各平台；一起选中的本地图片已嵌进正文。')
+  }
 
   // Receive messages from parent window
   useEffect(() => {
@@ -249,6 +298,24 @@ export function EditorApp() {
           </div>
 
           <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".md,.markdown,image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                importMarkdown(event.target.files)
+                event.target.value = ''
+              }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="px-3 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50"
+            >
+              <FileUp className="w-4 h-4 inline mr-1" />
+              导入 Markdown
+            </button>
             <button
               onClick={() => setShowSyncDialog(true)}
               className={cn(
@@ -289,8 +356,12 @@ export function EditorApp() {
         </div>
       )}
 
+      {importNote && (
+        <p className="fixed top-16 left-0 right-0 z-40 bg-amber-50 text-amber-900 text-xs px-6 py-2 border-b border-amber-100">{importNote}</p>
+      )}
+
       {/* Article content area */}
-      <main className="pt-16 pb-16">
+      <main className={importNote ? 'pt-24 pb-16' : 'pt-16 pb-16'}>
         <article className="w-full max-w-4xl mx-auto bg-white shadow-sm px-12 py-10" style={{ minHeight: 'calc(100vh - 4rem)' }}>
           {article.cover && (
             <img
