@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "文章同步助手",
-  "description": "一键同步文章到知乎、头条、掘金等 20+ 平台，支持 WordPress 等自建站",
+  "name": "Daily 同步",
+  "description": "自用构建。把文章存到各平台草稿，不代点公开。",
   "version": "2.0.10",
   "icons": {
     "16": "assets/icon-16.png",

@@ -1,3 +1,7 @@
+# Daily 同步
+
+这是陆兴自用的构建，基于 [Wechatsync](https://github.com/wechatsync/Wechatsync) `v2`，许可证仍是 GPL-3.0。上游同步见 `article-sync/`。
+
 # 文章同步助手 (Wechatsync)
 
 ![](https://img.shields.io/github/v/release/wechatsync/Wechatsync.svg)
@@ -297,9 +301,9 @@ pnpm build
 3. 打开要同步的文章页面
 4. 点击扩展图标，选择目标平台，一键同步
 
-## Author
+## 这份构建
 
-**fun** · 独立开发者 · [GitHub](https://github.com/lljxx1) · [主页](https://fun0.netlify.app/about/)
+自用仓库：[08163356/article-multi-platform-sync](https://github.com/08163356/article-multi-platform-sync)。上游作者信息保留在上游仓库，不放在这个扩展的界面里。
 
 ## License
 

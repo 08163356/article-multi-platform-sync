@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Star, Share2 } from 'lucide-react'
 
 const STORAGE_KEY = 'share_prompt_dismissed'
-const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/%E6%96%87%E7%AB%A0%E5%90%8C%E6%AD%A5%E5%8A%A9%E6%89%8B/hchobocdmclopcbnibdnoafilagadion/reviews'
-const SHARE_TEXT = '推荐一个开源免费的多平台文章同步工具，一键同步到知乎、掘金、头条、小红书等29+平台 https://www.wechatsync.com'
+const SHARE_TEXT = ''
 
 // 显示分享提示的里程碑次数
 const MILESTONES = [5, 20, 50]
@@ -58,13 +57,13 @@ export function SharePrompt() {
       </p>
       <div className="flex gap-2">
         <a
-          href={CHROME_STORE_URL}
+          href="https://github.com/08163356/article-multi-platform-sync"
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900 transition-colors"
         >
           <Star className="w-3 h-3" />
-          去好评
+          仓库
         </a>
         <button
           onClick={handleShare}
@@ -79,6 +78,7 @@ export function SharePrompt() {
 }
 
 async function checkShouldShow(): Promise<boolean> {
+  return false
   const storage = await chrome.storage.local.get([STORAGE_KEY, 'total_syncs'])
   const totalSyncs = storage.total_syncs || 0
   const dismissedAt = storage[STORAGE_KEY] || 0 // 上次关闭时的同步次数
