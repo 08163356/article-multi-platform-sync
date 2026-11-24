@@ -16,7 +16,7 @@ export default defineConfig([
   },
   // Library exports (no shebang)
   {
-    entry: ['src/exports.ts'],
+    entry: ['src/exports.ts', 'src/bridge-only.ts'],
     format: ['esm'],
     target: 'node18',
     outDir: 'dist',

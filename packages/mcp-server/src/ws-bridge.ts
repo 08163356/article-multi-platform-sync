@@ -157,8 +157,9 @@ export class ExtensionBridge {
       })
 
       const httpPort = this.port + 1
-      this.httpServer.listen(httpPort, () => {
-        if (!this.silent) console.error(`[Bridge] HTTP API listening on port ${httpPort}`)
+      // HTTP /request 不校验 Token，只给本机 Daily 调用，不对外网监听。
+      this.httpServer.listen(httpPort, '127.0.0.1', () => {
+        if (!this.silent) console.error(`[Bridge] HTTP API listening on 127.0.0.1:${httpPort}`)
         resolve()
       })
 
